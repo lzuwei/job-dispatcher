@@ -1,0 +1,27 @@
+# depslib dependency file v1.0
+1396965051 source:/home/zu/workspace/pbs/src/main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<errno.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/inotify.h>
+	<iostream>
+	<boost/process.hpp>
+	<vector>
+	<JobDispatcher.h>
+	<Job.h>
+
+1396963929 /home/zu/workspace/pbs/include/JobDispatcher.h
+	<vector>
+	<queue>
+	<boost/thread.hpp>
+	<Job.h>
+
+1396965086 /home/zu/workspace/pbs/include/Job.h
+	<limits.h>
+	<queue>
+	<string>
+	<boost/process.hpp>
+	<boost/random.hpp>
+
