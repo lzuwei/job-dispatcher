@@ -52,3 +52,49 @@
 	<boost/process.hpp>
 	<boost/random.hpp>
 
+1397059337 source:/home/zu/workspace/job-dispatcher/src/main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<errno.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/inotify.h>
+	<sys/epoll.h>
+	<iostream>
+	<vector>
+	<boost/process.hpp>
+	<INotifyEventPoller.h>
+	<JobDispatcher.h>
+	<Job.h>
+
+1397048774 /home/zu/workspace/job-dispatcher/include/JobDispatcher.h
+	<vector>
+	<queue>
+	<boost/thread.hpp>
+	<boost/atomic.hpp>
+	<Job.h>
+
+1397048774 /home/zu/workspace/job-dispatcher/include/Job.h
+	<limits.h>
+	<queue>
+	<string>
+	<boost/process.hpp>
+	<boost/random.hpp>
+
+1397058811 source:/home/zu/workspace/job-dispatcher/src/INotifyEventPoller.cpp
+	<INotifyEventPoller.h>
+	<stdio.h>
+	<stdlib.h>
+	<errno.h>
+	<unistd.h>
+	<sys/types.h>
+
+1397058624 /home/zu/workspace/job-dispatcher/include/INotifyEventPoller.h
+	<EventPoller.h>
+	<string>
+	<stdint.h>
+	<sys/inotify.h>
+	<sys/epoll.h>
+
+1397048774 /home/zu/workspace/job-dispatcher/include/EventPoller.h
+
