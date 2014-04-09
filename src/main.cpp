@@ -23,59 +23,72 @@ using namespace imrsv;
 
 int main()
 {
-
-
     /*
     child c = execute(run_exe("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg"),
                 set_cmd_line("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg -i /home/imrsv/workspace/ipg/build/codeblocks/bin/Release/zeta.jpg")
                 );
     wait_for_exit(c);
     */
-    JobDispatcher dispatcher(5, 100);
+    JobDispatcher dispatcher(2, 100);
 
-    Job j(Job::HIGH);
-    Task t1("/usr/local/bin/flvmeta", "-F -j jason.ipg.flv");
-    t1.setRedirectStdOut("jason.json");
-    Task t2("/home/zu/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-            "-v jason.ipg.flv -m jason.json -o jason.output -d");
-    j.addTask(t1);
-    j.addTask(t2);
+    Job j1(Job::VERY_LOW),j2(Job::LOW),j3(Job::HIGH),j4(Job::HIGH),j5(Job::VERY_HIGH),j6,j7(Job::LOW),j8,j9(Job::VERY_LOW),j10(Job::VERY_HIGH);
 
-    std::cout << t1 << std::endl;
-    std::cout << t2 << std::endl;
+    Task t1a("/usr/local/bin/flvmeta", "-F -j test1.ipg.flv", "/home/imrsv/completed");
+    t1a.setRedirectStdOut("/home/imrsv/completed/test1.json");
+    Task t1b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
+            "-v test1.ipg.flv -m test1.json -o test1.output -d",
+            "/home/imrsv/completed");
 
-    Job j1,j2,j3,j4,j5,j6,j7(Job::LOW),j8,j9(Job::VERY_LOW),j10(Job::VERY_HIGH);
+    Task t2a("/usr/local/bin/flvmeta", "-F -j test2.ipg.flv", "/home/imrsv/completed");
+    t2a.setRedirectStdOut("/home/imrsv/completed/test2.json");
+    Task t2b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
+            "-v test2.ipg.flv -m test2.json -o test2.output -d",
+            "/home/imrsv/completed");
 
-    std::cout<< j << std::endl;
-    std::cout<< j1 << std::endl;
-    std::cout<< j2 << std::endl;
-    std::cout<< j3 << std::endl;
-    std::cout<< j4 << std::endl;
-    std::cout<< j5 << std::endl;
-    std::cout<< j6 << std::endl;
-    std::cout<< j7 << std::endl;
-    std::cout<< j8 << std::endl;
-    std::cout<< j9 << std::endl;
-    std::cout<< j10 << std::endl;
-    std::cout<< std::endl;
+    Task t3a("/usr/local/bin/flvmeta", "-F -j test3.ipg.flv", "/home/imrsv/completed");
+    t3a.setRedirectStdOut("/home/imrsv/completed/test3.json");
+    Task t3b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
+            "-v test3.ipg.flv -m test3.json -o test3.output -d",
+            "/home/imrsv/completed");
 
-    dispatcher.push(j);
-    dispatcher.push(j1);
-    dispatcher.push(j2);
-    dispatcher.push(j3);
-    dispatcher.push(j4);
-    dispatcher.push(j5);
-    dispatcher.push(j6);
-    dispatcher.push(j7);
-    dispatcher.push(j8);
-    dispatcher.push(j9);
-    dispatcher.push(j10);
+    Task t4a("/usr/local/bin/flvmeta", "-F -j test4.ipg.flv", "/home/imrsv/completed");
+    t4a.setRedirectStdOut("/home/imrsv/completed/test4.json");
+    Task t4b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
+            "-v test4.ipg.flv -m test4.json -o test4.output -d",
+            "/home/imrsv/completed");
 
-    while(!dispatcher.isEmpty()) {
-        Job j = dispatcher.top();
-        std::cout<< j << std::endl;
-        dispatcher.pop();
+    Task t5a("/usr/local/bin/flvmeta", "-F -j test5.ipg.flv", "/home/imrsv/completed");
+    t5a.setRedirectStdOut("/home/imrsv/completed/test5.json");
+    Task t5b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
+            "-v test5.ipg.flv -m test5.json -o test5.output -d",
+            "/home/imrsv/completed");
+
+    j1.addTask(t1a);
+    j1.addTask(t1b);
+
+    j2.addTask(t2a);
+    j2.addTask(t2b);
+
+    j3.addTask(t3a);
+    j3.addTask(t3b);
+
+    j4.addTask(t4a);
+    j4.addTask(t4b);
+
+    j5.addTask(t5a);
+    j5.addTask(t5b);
+
+    dispatcher.addJob(j1);
+    dispatcher.addJob(j2);
+    dispatcher.addJob(j3);
+    dispatcher.addJob(j4);
+    dispatcher.addJob(j5);
+
+    while(1)
+    {
+        sleep(10);
     }
+
 #if 0
     int length, i = 0;
     int fd;

@@ -17,6 +17,13 @@ typedef boost::uniform_int<> NumberDistribution;
 typedef boost::mt19937 RandomNumberGenerator;
 typedef boost::variate_generator<RandomNumberGenerator&,NumberDistribution> Generator;
 
+/** \brief Generates a random number based on the given range.
+ *
+ * \param range_min int minimum value to be returned by the generator
+ * \param range_max int maximum value to be returned by the generator
+ * \return int a random number.
+ *
+ */
 int generateRandomNumber(int range_min, int range_max)
 {
     static RandomNumberGenerator generator(std::time(0));
@@ -25,6 +32,8 @@ int generateRandomNumber(int range_min, int range_max)
     return numberGenerator();
 }
 
+/** \brief Task that each job will consist of
+ */
 class Task
 {
 public:
@@ -103,6 +112,13 @@ private:
     }
 };
 
+/** \brief A Collection of Tasks that will be executed. <p>
+ *         Each Job consists of a ordered set of Tasks that will
+ *         be completed by one at a time. <br>
+ *         Jobs has a priority in which they can be ordered by the Job Dispatcher.
+ *         Each Job has a unique identifier called job_id which can be used to
+ *         identify itself.
+ */
 class Job
 {
 public:
@@ -124,6 +140,7 @@ public:
 
     void run()
     {
+        std::cout << *this << "started" <<std::endl;
         while(!m_tasks.empty())
         {
             Task t = m_tasks.front();
