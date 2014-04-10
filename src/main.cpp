@@ -81,22 +81,21 @@ int main()
 
     j5.addTask(t5a);
     j5.addTask(t5b);
-/*
+
     INotifyEventPoller inotify_poller;
-    inotify_poller.addWatch("/home/zu/tmp", IN_CREATE | IN_DELETE);
+    inotify_poller.addWatch("/home/imrsv/completed", IN_CREATE | IN_DELETE);
 
     while(1)
     {
         if(inotify_poller.poll(-1) > 0)
         {
-            std::cout << "hello" << std::endl;
             inotify_poller.service();
         }
 
     }
-*/
 
-//#if 0
+
+#if 0
     //using epoll
     int inotify_init_fd;
     int inotify_watch_fd;
@@ -211,5 +210,5 @@ int main()
 
     /*closing the INOTIFY instance*/
     close( inotify_init_fd );
-//#endif
+#endif
 }

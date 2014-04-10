@@ -5,29 +5,48 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-INotifyEventPoller::INotifyEventPoller()
+/** \brief Initialize the INotify on creations to
+ *         begin accepting new watchers.
+ */
+INotifyEventPoller::INotifyEventPoller() :
+    m_inotify_init_fd(0)
 {
-    //ctor
+    initWatch();
 }
 
+/** \brief close the INotify instance
+ */
 INotifyEventPoller::~INotifyEventPoller()
 {
-    /*closing the INOTIFY instance*/
-    close( m_inotify_init_fd );
+    ///closing the INOTIFY instance
+    removeAllWatch();
+    close(m_inotify_init_fd);
+    close(m_epoll_fd);
 }
 
 /** \brief Initialize an INotifyWatch.
  *
- * \return int
+ * \return int On success, these system calls return a new file descriptor.
+ *             On error, -1 is returned, and errno is set to indicate the error.
  *
  */
 int INotifyEventPoller::initWatch()
 {
+    //check if an existing initialization descriptor is in use.
+    //close it if present and clear the watchdescriptors associated with it.
+    if(m_inotify_init_fd > 0)
+    {
+        //remove all watch descriptors
+        removeAllWatch();
+        close(m_inotify_init_fd);
+        close(m_epoll_fd);
+    }
+
     m_inotify_init_fd = inotify_init();
     if(m_inotify_init_fd < 0)
         perror("Error Initializing INotify");
 
-    //setup the epoll events, consider doing it in the constructor
+    //setup the epoll events
     m_epoll_fd = epoll_create(MAXPOLLSIZE);
     m_epoll_event.events = EPOLLIN | EPOLLPRI;
     m_epoll_event.data.fd = m_inotify_init_fd;
@@ -61,12 +80,20 @@ int INotifyEventPoller::initWatch()
  */
 int INotifyEventPoller::addWatch(const std::string& pathname, const uint32_t mask)
 {
-    m_inotify_watch_fd = inotify_add_watch(m_inotify_init_fd, pathname.c_str(), mask);
-    return m_inotify_watch_fd;
+    int wd = inotify_add_watch(m_inotify_init_fd, pathname.c_str(), mask);
+
+    if(wd < 0)
+        perror("Unable to add new watch descriptors");
+    else
+    {
+        m_watch_descriptors[wd] = pathname;
+    }
+    return wd;
 }
 
 
-/** \brief Removes a INotify watch using the File Descriptor return by addWatch.
+/** \brief Removes a INotify watch using the Watch Descriptor return by addWatch.
+ *         Removes the watch descriptor from the hashtable of watch descriptors
  *
  * \param wd int watch descriptor to unwatch
  * \return int On success, removeWatch() returns zero,
@@ -81,7 +108,29 @@ int INotifyEventPoller::addWatch(const std::string& pathname, const uint32_t mas
 int INotifyEventPoller::removeWatch(int wd)
 {
     /*removing the “/tmp” directory from the watch list.*/
-    return inotify_rm_watch(m_inotify_init_fd, wd);
+    int res = inotify_rm_watch(m_inotify_init_fd, wd);
+
+    if(res < 0)
+        perror("Unable to remove watch descriptor");
+    else
+    {
+        m_watch_descriptors.erase(wd);
+    }
+
+    return res;
+}
+
+int INotifyEventPoller::removeAllWatch()
+{
+    for(boost::unordered_map<int, std::string>::iterator it = m_watch_descriptors.begin(), end = m_watch_descriptors.end();
+    it != end;
+    ++it)
+    {
+        int wd = (*it).first;
+        inotify_rm_watch(m_inotify_init_fd, wd);
+    }
+    m_watch_descriptors.clear();
+    return 0;
 }
 
 int INotifyEventPoller::poll(int timeout = -1)
@@ -104,13 +153,14 @@ int INotifyEventPoller::service()
     {
         int fd = m_epoll_events[i].data.fd;
 
-        if ( fd = m_inotify_init_fd )
+        if (fd == m_inotify_init_fd)
         {
 
             // it's an inotify thing
             inotify_buf_len = read (fd, m_inotify_buf, INOTIFY_BUF_LEN);
             int j=0;
 
+            //process all the watch descriptors
             while ( j < inotify_buf_len)
             {
                 struct inotify_event *event;

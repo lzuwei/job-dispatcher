@@ -25,16 +25,18 @@
 	<boost/process.hpp>
 	<boost/random.hpp>
 
-1397023437 source:/home/imrsv/workspace/job-dispatcher/src/main.cpp
+1397114406 source:/home/imrsv/workspace/job-dispatcher/src/main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<errno.h>
 	<unistd.h>
 	<sys/types.h>
 	<sys/inotify.h>
+	<sys/epoll.h>
 	<iostream>
-	<boost/process.hpp>
 	<vector>
+	<boost/process.hpp>
+	<INotifyEventPoller.h>
 	<JobDispatcher.h>
 	<Job.h>
 
@@ -97,4 +99,34 @@
 	<sys/epoll.h>
 
 1397048774 /home/zu/workspace/job-dispatcher/include/EventPoller.h
+
+1397114695 source:/home/imrsv/workspace/job-dispatcher/src/INotifyEventPoller.cpp
+	<INotifyEventPoller.h>
+	<stdio.h>
+	<stdlib.h>
+	<errno.h>
+	<unistd.h>
+	<sys/types.h>
+
+1397113983 /home/imrsv/workspace/job-dispatcher/include/INotifyEventPoller.h
+	<EventPoller.h>
+	<string>
+	<stdint.h>
+	<sys/inotify.h>
+	<sys/epoll.h>
+	<boost/unordered_map.hpp>
+
+1397034226 /home/imrsv/workspace/job-dispatcher/include/EventPoller.h
+
+1397123040 source:/home/imrsv/workspace/job-dispatcher/src/INotifyEvent.cpp
+	<INotifyEvent.h>
+	<INotifyWatch.h>
+
+1397122974 /home/imrsv/workspace/job-dispatcher/include/INotifyEvent.h
+	<stdint.h>
+	<string>
+	<sys/inotify.h>
+
+1397122992 /home/imrsv/workspace/job-dispatcher/include/INotifyWatch.h
+	<INotifyEventPoller.h>
 
