@@ -51,10 +51,14 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="../../include/EventPoller.h" />
+		<Unit filename="../../include/INotifyEvent.h" />
 		<Unit filename="../../include/INotifyEventPoller.h" />
+		<Unit filename="../../include/INotifyWatch.h" />
 		<Unit filename="../../include/Job.h" />
 		<Unit filename="../../include/JobDispatcher.h" />
+		<Unit filename="../../src/INotifyEvent.cpp" />
 		<Unit filename="../../src/INotifyEventPoller.cpp" />
+		<Unit filename="../../src/INotifyWatch.cpp" />
 		<Unit filename="../../src/main.cpp" />
 		<Extensions>
 			<code_completion />
