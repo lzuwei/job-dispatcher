@@ -52,6 +52,7 @@
 		</Compiler>
 		<Unit filename="../../include/EventPoller.h" />
 		<Unit filename="../../include/INotifyEvent.h" />
+		<Unit filename="../../include/INotifyEventListener.h" />
 		<Unit filename="../../include/INotifyEventPoller.h" />
 		<Unit filename="../../include/INotifyWatch.h" />
 		<Unit filename="../../include/Job.h" />
