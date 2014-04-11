@@ -137,7 +137,7 @@ int main()
 
     IpgPostProcessor* ipg = new IpgPostProcessor(&dispatcher);
 
-    int wd = inotify_poller.addWatch("/home/imrsv/completed", IN_MOVED_TO);
+    int wd = inotify_poller.addWatch("/home/zu/completed", IN_MOVED_TO);
     inotify_poller.addINotifyEventListener(wd,ipg);
 
     while(1)

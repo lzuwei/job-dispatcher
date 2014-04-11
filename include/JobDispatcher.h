@@ -6,6 +6,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
+#include <boost/heap/priority_queue.hpp>
 
 #include <Job.h>
 
@@ -105,6 +106,7 @@ private:
         return m_jobs.top();
     }
 
+    //Job Dispatcher are not supposed to be cloned.
     JobDispatcher();
     JobDispatcher(const JobDispatcher& jd);
     JobDispatcher& operator=(const JobDispatcher& id);
@@ -148,8 +150,21 @@ private:
         }
     }
 
+    //print out the Job Schedule
+    friend std::ostream& operator<< (std::ostream& out, const JobDispatcher& jd)
+    {
+        out << "{";
+
+        for (boost::heap::priority_queue<Job>::const_iterator it = jd.m_jobs.begin(), end = jd.m_jobs.end(); it != end; ++it)
+            out << *it << ", ";
+
+        out << "}";
+
+        return out;
+    }
+
     std::size_t m_max_queue_size;
-    std::priority_queue<Job> m_jobs;
+    boost::heap::priority_queue<Job> m_jobs;
 
     //typedefs
     typedef boost::unique_lock<boost::mutex> JobQueueLock;
