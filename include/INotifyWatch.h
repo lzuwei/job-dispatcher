@@ -1,6 +1,8 @@
 #pragma once
 
+#include <list>
 #include <INotifyEventPoller.h>
+#include <INotifyEventListener.h>
 
 /** \brief Wrapper for INotify Watch Descriptors
  *         Instances of this class are created when a
@@ -30,6 +32,13 @@ private:
     int32_t m_wd;         ///< watch descriptor
     //Inotify* m_pInotify;  ///< inotify object
     bool m_enabled;      ///< events enabled yes/no
+
+    void addINotifyEventListener(INotifyEventListener* listener);
+    void removeINotifyEventListener(INotifyEventListener* listener);
+    void notifyAll(const INotifyEvent& event);
+
+    //Event Listeners
+    std::list<INotifyEventListener*> m_event_listeners;
 
     friend class INotifyEventPoller;
 };

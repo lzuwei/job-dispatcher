@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <string>
+#include <iostream>
 
 //inotify
 #include <sys/inotify.h>
@@ -18,7 +19,7 @@ public:
 
     }
 
-    INotifyEvent(const struct inotify_event* evt, INotifyWatch* watch) :
+    INotifyEvent(const struct inotify_event* evt) :
         m_mask(0),
         m_cookie(0)
     {
@@ -28,8 +29,8 @@ public:
             m_cookie = (uint32_t) evt->cookie;
             if(evt->name != NULL)
                 m_name = evt->len > 0 ? evt->name : "";
+            m_wd = evt->wd;
         }
-        m_watch = watch;
     }
 
     ~INotifyEvent() {}
@@ -47,7 +48,7 @@ public:
     uint32_t cookie() const {return m_cookie;}
     uint32_t length() const {return m_name.length();}
     const std::string& name() const {return m_name;}
-    INotifyWatch* watch() const {return m_watch;}
+    uint32_t wd() const {return m_wd;}
 
     //Event Mask Identification Helpers
     bool isType(uint32_t event_type) const
@@ -56,12 +57,26 @@ public:
     }
 
     void dumpTypes(std::string& str) const;
-    int32_t watch_descriptor() const;
+
+    friend std::ostream& operator<< (std::ostream& out, const INotifyEvent& e)
+    {
+        std::string event_type;
+        e.dumpTypes(event_type);
+
+        out << "{"
+        << "\"wd\": " << e.wd() << ", "
+        << "\"name\": " << e.name() << ", "
+        << "\"mask\": " << event_type << ", "
+        << "\"cookie\": " << e.cookie()
+        << "}";
+
+        return out;
+    }
 
 protected:
 private:
     uint32_t m_mask;
     uint32_t m_cookie;
     std::string m_name;
-    INotifyWatch* m_watch;
+    uint32_t m_wd;
 };

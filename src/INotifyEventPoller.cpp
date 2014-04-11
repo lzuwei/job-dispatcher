@@ -1,4 +1,8 @@
 #include <INotifyEventPoller.h>
+#include <INotifyEvent.h>
+#include <INotifyWatch.h>
+#include <INotifyEventListener.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -81,16 +85,24 @@ int INotifyEventPoller::initWatch()
 int INotifyEventPoller::addWatch(const std::string& pathname, const uint32_t mask)
 {
     int wd = inotify_add_watch(m_inotify_init_fd, pathname.c_str(), mask);
-
     if(wd < 0)
         perror("Unable to add new watch descriptors");
     else
     {
-        m_watch_descriptors[wd] = pathname;
+        //if is existant, modify it
+        if(m_watch_descriptors.find(wd) != m_watch_descriptors.end())
+        {
+            INotifyWatch* to_modify = m_watch_descriptors[wd];
+            to_modify->m_mask = mask;
+            to_modify->m_path = pathname;
+        }
+        else
+        {
+            m_watch_descriptors[wd] = new INotifyWatch(pathname, mask);
+        }
     }
     return wd;
 }
-
 
 /** \brief Removes a INotify watch using the Watch Descriptor return by addWatch.
  *         Removes the watch descriptor from the hashtable of watch descriptors
@@ -114,23 +126,46 @@ int INotifyEventPoller::removeWatch(int wd)
         perror("Unable to remove watch descriptor");
     else
     {
+        INotifyWatch* to_delete = m_watch_descriptors[wd];
         m_watch_descriptors.erase(wd);
+        delete to_delete;
     }
-
     return res;
 }
 
 int INotifyEventPoller::removeAllWatch()
 {
-    for(boost::unordered_map<int, std::string>::iterator it = m_watch_descriptors.begin(), end = m_watch_descriptors.end();
-    it != end;
-    ++it)
+    for(boost::unordered_map<int, INotifyWatch*>::iterator it = m_watch_descriptors.begin(), end = m_watch_descriptors.end();
+    it != end; ++it)
     {
-        int wd = (*it).first;
-        inotify_rm_watch(m_inotify_init_fd, wd);
+        INotifyWatch* to_delete = (*it).second;
+        inotify_rm_watch(m_inotify_init_fd, to_delete->wd());
+        delete to_delete;
     }
     m_watch_descriptors.clear();
     return 0;
+}
+
+bool INotifyEventPoller::addINotifyEventListener(int wd, INotifyEventListener* listener)
+{
+    boost::unordered_map<int, INotifyWatch*>::iterator it = m_watch_descriptors.find(wd);
+    if(it != m_watch_descriptors.end())
+    {
+        (*it).second->addINotifyEventListener(listener);
+        return true;
+    }
+    return false;
+}
+
+bool INotifyEventPoller::removeINotifyEventListener(int wd, INotifyEventListener* listener)
+{
+    boost::unordered_map<int, INotifyWatch*>::iterator it = m_watch_descriptors.find(wd);
+    if(it != m_watch_descriptors.end())
+    {
+        (*it).second->removeINotifyEventListener(listener);
+        return true;
+    }
+    return false;
 }
 
 int INotifyEventPoller::poll(int timeout = -1)
@@ -166,47 +201,9 @@ int INotifyEventPoller::service()
                 struct inotify_event *event;
 
                 event = (struct inotify_event *) &m_inotify_buf[j];
+                INotifyEvent e(event);
 
-                if(event->len)
-                {
-                    if ( event->mask & IN_CREATE )
-                    {
-                        if ( event->mask & IN_ISDIR )
-                        {
-                            printf( "New directory %s created.\n", event->name );
-                        }
-                        else
-                        {
-                            printf( "New file %s created.\n", event->name );
-                        }
-                    }
-                    else if ( event->mask & IN_DELETE )
-                    {
-                        if ( event->mask & IN_ISDIR )
-                        {
-                            printf( "Directory %s deleted.\n", event->name );
-                        }
-                        else
-                        {
-                            printf( "File %s deleted.\n", event->name );
-                        }
-                    }
-                    else if ( event->mask & IN_MODIFY)
-                    {
-                        if( event->mask & IN_ISDIR)
-                        {
-                            printf( "Directory %s is modified\n", event->name);
-                        }
-                        else
-                        {
-                            printf( "File %s is modified\n", event->name);
-                        }
-                    }
-                }
-
-                printf ("wd=%d mask=%u cookie=%u len=%u\n", event->wd, event->mask, event->cookie, event->len);
-
-                if (event->len) printf("name=%s\n", event->name);
+                m_watch_descriptors[e.wd()]->notifyAll(e);
 
                 j += INOTIFY_EVENT_SIZE + event->len;
 

@@ -17,9 +17,15 @@
 #define INOTIFY_EVENT_SIZE (sizeof (struct inotify_event))
 #define INOTIFY_BUF_LEN (1024 * (INOTIFY_EVENT_SIZE + 16))
 
+//Forward Declarations
+class INotifyWatch;
+class INotifyEventListener;
+
 /** \brief INotify Event Poller.
  *         Detects for INotify events and performs the necessary
- *         Jobs defined by the user
+ *         Jobs defined by the user.
+ *         Maintains a HashMap of all the current watch descriptors
+ *         held by this INotifyPoller.
  */
 class INotifyEventPoller : public EventPoller
 {
@@ -35,8 +41,11 @@ public:
     //Class specific functions to handle inotify
     int initWatch();
     int addWatch(const std::string& pathname, const uint32_t mask);
-    int removeWatch(int fd);
+    int removeWatch(int wd);
+    int removeWatch(const std::string& pathname);
     int removeAllWatch();
+    bool addINotifyEventListener(int wd, INotifyEventListener* listener);
+    bool removeINotifyEventListener(int wd, INotifyEventListener* listener);
 
 protected:
 private:
@@ -53,5 +62,6 @@ private:
     int m_inotify_buf_len;
 
     //wd to pathname map and maybe wd to Job in future
-    boost::unordered_map<int, std::string> m_watch_descriptors;
+    boost::unordered_map<int, INotifyWatch*> m_watch_descriptors;
+    boost::unordered_map<std::string, INotifyWatch*> m_watch_paths;
 };

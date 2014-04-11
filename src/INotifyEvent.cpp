@@ -9,11 +9,6 @@
     } \
   })
 
-int32_t INotifyEvent::watch_descriptor() const
-{
-    return m_watch != NULL ? m_watch->wd() : -1;
-}
-
 uint32_t INotifyEvent::getMaskByName(const std::string& r_name)
 {
     if (r_name == "IN_ACCESS")

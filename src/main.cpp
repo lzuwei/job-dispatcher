@@ -16,6 +16,7 @@
 #include <boost/process.hpp>
 
 #include <INotifyEventPoller.h>
+#include <INotifyEventListener.h>
 #include <JobDispatcher.h>
 #include <Job.h>
 
@@ -23,6 +24,56 @@ using namespace std;
 using namespace boost::process;
 using namespace boost::process::initializers;
 using namespace imrsv;
+
+//Simple Concrete INotifyEventListener
+class IpgPostProcessor : public INotifyEventListener
+{
+public:
+    IpgPostProcessor(JobDispatcher* dispatcher) :
+        m_dispatcher(dispatcher)
+    {
+
+    }
+
+    void onReceiveINotifyEvent(const INotifyEvent& e)
+    {
+        std::cout << e << std::endl;
+        std::string filename = e.name();
+
+        //check for .ipg and .flv extensions
+        if(filename.find(".ipg") != std::string::npos && filename.find(".flv") != std::string::npos)
+        {
+            Job j;
+            //extract the filename without the extensions
+            std::string::size_type pos = filename.find(".ipg");
+            std::string base_name = filename.substr(0, pos);
+
+            std::cout << "Extracted filename: " << base_name << std::endl;
+
+            std::string meta_data_file = base_name + ".json";
+            std::string output_file = base_name + ".output";
+
+            //create a job for the job dispatcher
+            Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, "/home/imrsv/completed");
+            t1a.setRedirectStdOut("/home/imrsv/completed/" + meta_data_file);
+            Task t1b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
+             "-v " + filename + " -m " + meta_data_file + " -o " + output_file + " -d",
+             "/home/imrsv/completed");
+
+             std::cout << t1a << std::endl;
+             std::cout << t1b << std::endl;
+
+             j.addTask(t1a);
+             j.addTask(t1b);
+
+             m_dispatcher->addJob(j);
+        }
+
+    }
+
+private:
+    JobDispatcher* m_dispatcher;
+};
 
 
 int main()
@@ -83,7 +134,11 @@ int main()
     j5.addTask(t5b);
 
     INotifyEventPoller inotify_poller;
-    inotify_poller.addWatch("/home/imrsv/completed", IN_CREATE | IN_DELETE);
+
+    IpgPostProcessor* ipg = new IpgPostProcessor(&dispatcher);
+
+    int wd = inotify_poller.addWatch("/home/imrsv/completed", IN_MOVED_TO);
+    inotify_poller.addINotifyEventListener(wd,ipg);
 
     while(1)
     {
@@ -91,124 +146,5 @@ int main()
         {
             inotify_poller.service();
         }
-
     }
-
-
-#if 0
-    //using epoll
-    int inotify_init_fd;
-    int inotify_watch_fd;
-    int epoll_fd;
-    struct epoll_event epoll_events[MAXPOLLSIZE];
-    char inotify_buf[INOTIFY_BUF_LEN];
-    int inotify_buf_len;
-
-    // create an initofy instance
-    inotify_init_fd = inotify_init();
-    if ( inotify_init_fd < 0)
-        perror( "inotify_init" );
-
-    // handle error here if fd not valid
-    epoll_fd = epoll_create(MAXPOLLSIZE);
-
-
-    // add the inotify_init_fd to the epoll instance
-    static struct epoll_event ev;
-    ev.events = EPOLLIN | EPOLLPRI;
-    ev.data.fd = inotify_init_fd;
-    int res = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, inotify_init_fd, &ev);
-    if(res < 0)
-        perror("Epoll Add Control");
-
-    inotify_watch_fd = inotify_add_watch(inotify_init_fd, "/home/zu/tmp", IN_CREATE | IN_DELETE);
-
-    // handle error here when fd not set/valid
-
-    while (1)
-    {
-        int number_of_fds = epoll_wait(epoll_fd, epoll_events, MAXPOLLSIZE, -1);
-
-        if (number_of_fds < 0)
-        {
-            perror("epoll_wait");
-            return 1;
-        }
-
-        for (int i = 0; i < number_of_fds; i++)
-        {
-
-            int fd = epoll_events[i].data.fd;
-
-            if ( fd = inotify_init_fd )
-            {
-
-                // it's an inotify thing
-
-                inotify_buf_len = read (fd, inotify_buf, INOTIFY_BUF_LEN);
-
-                int j=0;
-
-                while ( j < inotify_buf_len)
-                {
-
-                    struct inotify_event *event;
-
-                    event = (struct inotify_event *) &inotify_buf[j];
-
-                    if(event->len)
-                    {
-                        if ( event->mask & IN_CREATE )
-                        {
-                            if ( event->mask & IN_ISDIR )
-                            {
-                                printf( "New directory %s created.\n", event->name );
-                            }
-                            else
-                            {
-                                printf( "New file %s created.\n", event->name );
-                            }
-                        }
-                        else if ( event->mask & IN_DELETE )
-                        {
-                            if ( event->mask & IN_ISDIR )
-                            {
-                                printf( "Directory %s deleted.\n", event->name );
-                            }
-                            else
-                            {
-                                printf( "File %s deleted.\n", event->name );
-                            }
-                        }
-                        else if ( event->mask & IN_MODIFY)
-                        {
-                            if( event->mask & IN_ISDIR)
-                            {
-                                printf( "Directory %s is modified\n", event->name);
-                            }
-                            else
-                            {
-                                printf( "File %s is modified\n", event->name);
-                            }
-                        }
-                    }
-
-                    printf ("wd=%d mask=%u cookie=%u len=%u\n", event->wd, event->mask, event->cookie, event->len);
-
-                    if (event->len) printf("name=%s\n", event->name);
-
-                    j += INOTIFY_EVENT_SIZE + event->len;
-
-                }
-
-            }
-        }
-    }
-
-    /*removing the “/tmp” directory from the watch list.*/
-    inotify_rm_watch( inotify_init_fd, inotify_watch_fd );
-
-    /*closing the INOTIFY instance*/
-    close( inotify_init_fd );
-#endif
 }
