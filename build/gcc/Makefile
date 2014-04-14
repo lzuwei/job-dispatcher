@@ -13,12 +13,12 @@ CFLAGS = -Wall -O2 -fexceptions -DLINUX
 
 # define any directories containing header files other than /usr/include
 #
-INCLUDES = -I../../include 
+INCLUDES = -I../../include -I../../../../boost_1_55_0
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -L/usr/local/lib  -L/usr/lib -s
+LFLAGS = -L/usr/local/lib  -L/usr/lib -L../../../../boost_1_55_0/stage/lib -s
 
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 

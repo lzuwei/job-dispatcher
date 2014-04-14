@@ -81,7 +81,7 @@ public:
             Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
             t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
             Task t1b(m_ipg_executable_path,
-                     "-v " + filename + " -m " + meta_data_file + " -o " + output_file + " -d",
+                     "-v " + filename + " -m " + meta_data_file + " -o " + output_file,
                      m_watch_directory);
 
             std::cout << t1a << std::endl;
