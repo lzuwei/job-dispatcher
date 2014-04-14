@@ -4,6 +4,7 @@
 #include <queue>
 #include <string>
 #include <boost/process.hpp>
+#include <boost/process/mitigate.hpp>
 #include <boost/random.hpp>
 
 using namespace boost::process;
@@ -32,7 +33,10 @@ int generateRandomNumber(int range_min, int range_max)
     return numberGenerator();
 }
 
-/** \brief Task that each job will consist of
+/** \brief Task that each job will consist of.
+ *         This is a holder for program arguments and redirections.
+ *         Execution logic is held in the Job Instance with
+ *         Task Completion Handles and Process Launch Error Handles.
  */
 class Task
 {
@@ -102,12 +106,12 @@ private:
     friend std::ostream& operator<< (std::ostream& out, const Task& t)
     {
         out << "{"
-        << "\"task_id\": " << t.task_id() << ", "
-        << "\"program\": " << "\"" << t.program() << "\"" << ", "
-        << "\"arguments\": " << "\"" << t.args() << "\"" << ", "
-        << "\"working_directory\": " << "\"" << t.working_directory() << "\"" << ", "
-        << "\"stdout_redirect\": " << "\"" << t.redirect_stdout() << "\""
-        << "}";
+            << "\"task_id\": " << t.task_id() << ", "
+            << "\"program\": " << "\"" << t.program() << "\"" << ", "
+            << "\"arguments\": " << "\"" << t.args() << "\"" << ", "
+            << "\"working_directory\": " << "\"" << t.working_directory() << "\"" << ", "
+            << "\"stdout_redirect\": " << "\"" << t.redirect_stdout() << "\""
+            << "}";
         return out;
     }
 };
@@ -130,8 +134,14 @@ public:
     {
     }
 
-    int priority() const {return m_priority;}
-    int job_id() const {return m_job_id;}
+    int priority() const
+    {
+        return m_priority;
+    }
+    int job_id() const
+    {
+        return m_job_id;
+    }
 
     void addTask(Task task)
     {
@@ -152,7 +162,9 @@ public:
                                   start_in_dir(t.working_directory()),
                                   inherit_env()
                                  );
-                wait_for_exit(c);
+                //convert the return code to platform independent ret codes
+                int exit_code = wait_for_exit(c);
+                BOOST_PROCESS_EXITSTATUS(exit_code);
             }
             else
             {
@@ -163,7 +175,9 @@ public:
                                   start_in_dir(t.working_directory()),
                                   inherit_env()
                                  );
-                wait_for_exit(c);
+                //convert the return code to platform independent ret codes
+                int exit_code = wait_for_exit(c);
+                BOOST_PROCESS_EXITSTATUS(exit_code);
             }
             m_tasks.pop();
         }
@@ -174,6 +188,12 @@ private:
     int m_job_id;
     Priority m_priority;
 
+    ///TODOs:
+    // 1) Attach a task completion handler to a task ID, call with exit code
+    // 2) Add a task completion handler that can be called to do post processing
+    // 3) Add a process creation exception when launch process fails.
+
+
     friend bool operator< (const Job& a, const Job& b)
     {
         return a.priority() < b.priority();
@@ -182,8 +202,8 @@ private:
     friend std::ostream& operator << (std::ostream& out, const Job& j)
     {
         out << "{\"job_id\": " << j.job_id() << ", "
-        << "\"priority\": " << j.priority()
-        << "}";
+            << "\"priority\": " << j.priority()
+            << "}";
 
         return out;
     }

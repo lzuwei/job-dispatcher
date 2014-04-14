@@ -1,4 +1,3 @@
-/*This is the sample program to notify us for the file creation and file deletion takes place in “/tmp” directory*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -14,11 +13,18 @@
 #include <iostream>
 #include <vector>
 #include <boost/process.hpp>
+#include <boost/program_options.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <INotifyEventPoller.h>
 #include <INotifyEventListener.h>
 #include <JobDispatcher.h>
 #include <Job.h>
+
+#define APPLICATION_NAME "Job Dispatcher"
+#define VERSION_NUM "0.0.1"
+#define COPYRIGHT "Copyright 2014 Immersive Labs. All rights reserved."
 
 using namespace std;
 using namespace boost::process;
@@ -29,10 +35,30 @@ using namespace imrsv;
 class IpgPostProcessor : public INotifyEventListener
 {
 public:
-    IpgPostProcessor(JobDispatcher* dispatcher) :
-        m_dispatcher(dispatcher)
+    IpgPostProcessor(JobDispatcher* dispatcher, const std::string ipg_executable_path, const std::string& watch_directory) :
+        m_dispatcher(dispatcher),
+        m_ipg_executable_path(ipg_executable_path),
+        m_watch_directory(watch_directory)
     {
 
+    }
+
+    const std::string& ipg_executable_path() const
+    {
+        return m_ipg_executable_path;
+    }
+    const std::string& watch_directory() const
+    {
+        return m_watch_directory;
+    }
+
+    void setIpgExecutablePath(const std::string& path)
+    {
+        m_ipg_executable_path = path;
+    }
+    void setWatchDirectory(const std::string& directory)
+    {
+        m_watch_directory = directory;
     }
 
     void onReceiveINotifyEvent(const INotifyEvent& e)
@@ -48,103 +74,119 @@ public:
             std::string::size_type pos = filename.find(".ipg");
             std::string base_name = filename.substr(0, pos);
 
-            std::cout << "Extracted filename: " << base_name << std::endl;
-
             std::string meta_data_file = base_name + ".json";
             std::string output_file = base_name + ".output";
 
             //create a job for the job dispatcher
-            Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, "/home/imrsv/completed");
-            t1a.setRedirectStdOut("/home/imrsv/completed/" + meta_data_file);
-            Task t1b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-             "-v " + filename + " -m " + meta_data_file + " -o " + output_file + " -d",
-             "/home/imrsv/completed");
+            Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
+            t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
+            Task t1b(m_ipg_executable_path,
+                     "-v " + filename + " -m " + meta_data_file + " -o " + output_file + " -d",
+                     m_watch_directory);
 
-             std::cout << t1a << std::endl;
-             std::cout << t1b << std::endl;
+            std::cout << t1a << std::endl;
+            std::cout << t1b << std::endl;
 
-             j.addTask(t1a);
-             j.addTask(t1b);
+            j.addTask(t1a);
+            j.addTask(t1b);
 
-             m_dispatcher->addJob(j);
+            m_dispatcher->addJob(j);
         }
-
     }
 
 private:
     JobDispatcher* m_dispatcher;
+    std::string m_ipg_executable_path;
+    std::string m_watch_directory;
 };
 
 
-int main()
+int main(int argc, char* argv[])
 {
-    /*
-    child c = execute(run_exe("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg"),
-                set_cmd_line("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg -i /home/imrsv/workspace/ipg/build/codeblocks/bin/Release/zeta.jpg")
-                );
-    wait_for_exit(c);
-    */
-    JobDispatcher dispatcher(2, 100);
+    namespace po = boost::program_options;
+    po::options_description description("Usage: job-dispatcher --config [FILE]");
 
-    Job j1(Job::VERY_LOW),j2(Job::LOW),j3(Job::HIGH),j4(Job::HIGH),j5(Job::VERY_HIGH),j6,j7(Job::LOW),j8,j9(Job::VERY_LOW),j10(Job::VERY_HIGH);
+    //add program options
+    description.add_options()
+    ("help", "Display this help message")
+    ("version", "Display the version number")
+    ("config", po::value<std::string>(), "Configuration File");
 
-    Task t1a("/usr/local/bin/flvmeta", "-F -j test1.ipg.flv", "/home/imrsv/completed");
-    t1a.setRedirectStdOut("/home/imrsv/completed/test1.json");
-    Task t1b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-             "-v test1.ipg.flv -m test1.json -o test1.output -d",
-             "/home/imrsv/completed");
+    //parse command line
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
+    po::notify(vm);
 
-    Task t2a("/usr/local/bin/flvmeta", "-F -j test2.ipg.flv", "/home/imrsv/completed");
-    t2a.setRedirectStdOut("/home/imrsv/completed/test2.json");
-    Task t2b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-             "-v test2.ipg.flv -m test2.json -o test2.output -d",
-             "/home/imrsv/completed");
+    if (vm.count("help"))
+    {
+        std::cout << APPLICATION_NAME " - Asynchronous Job Dispatcher using Thread Pools and Boost Process" << std::endl
+                  << description << std::endl;
+        return 0;
+    }
 
-    Task t3a("/usr/local/bin/flvmeta", "-F -j test3.ipg.flv", "/home/imrsv/completed");
-    t3a.setRedirectStdOut("/home/imrsv/completed/test3.json");
-    Task t3b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-             "-v test3.ipg.flv -m test3.json -o test3.output -d",
-             "/home/imrsv/completed");
+    if(vm.count("version"))
+    {
+        std::cout << APPLICATION_NAME << " " << VERSION_NUM << std::endl;
+        std::cout << COPYRIGHT << std::endl;
+        return 0;
+    }
 
-    Task t4a("/usr/local/bin/flvmeta", "-F -j test4.ipg.flv", "/home/imrsv/completed");
-    t4a.setRedirectStdOut("/home/imrsv/completed/test4.json");
-    Task t4b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-             "-v test4.ipg.flv -m test4.json -o test4.output -d",
-             "/home/imrsv/completed");
+    //config file name
+    std::string config_file;
+    if(vm.count("config"))
+        config_file = vm["config"].as<std::string>();
+    else
+    {
+        std::cout << APPLICATION_NAME " - Asynchronous Job Dispatcher using Thread Pools and Boost Process" << std::endl
+                  << description << std::endl;
+        return 0;
+    }
 
-    Task t5a("/usr/local/bin/flvmeta", "-F -j test5.ipg.flv", "/home/imrsv/completed");
-    t5a.setRedirectStdOut("/home/imrsv/completed/test5.json");
-    Task t5b("/home/imrsv/workspace/ipg/build/codeblocks/bin/Release/cara_ipg",
-             "-v test5.ipg.flv -m test5.json -o test5.output -d",
-             "/home/imrsv/completed");
+    //parse the json config file to obtain configuration
+    int num_workers;
+    int max_job_queue;
+    std::string ipg_exe_path;
+    std::string ipg_watch_dir;
+    try
+    {
+        boost::property_tree::ptree pt;
+        boost::property_tree::read_json(config_file, pt);
 
-    j1.addTask(t1a);
-    j1.addTask(t1b);
+        num_workers = pt.get<int>("dispatcher.num_workers");
+        max_job_queue = pt.get<int>("dispatcher.max_job_queue");
 
-    j2.addTask(t2a);
-    j2.addTask(t2b);
+        ipg_exe_path = pt.get<std::string>("ipg.executable_path");
+        ipg_watch_dir = pt.get<std::string>("ipg.watch_directory");
 
-    j3.addTask(t3a);
-    j3.addTask(t3b);
+        std::cout << num_workers << std::endl;
+        std::cout << max_job_queue << std::endl;
+        std::cout << ipg_exe_path << std::endl;
+        std::cout << ipg_watch_dir << std::endl;
+    }
+    catch (boost::property_tree::json_parser::json_parser_error& e)
+    {
+        e.what();
+        std::terminate();
+    }
+    catch (boost::property_tree::ptree_error& e)
+    {
+        e.what();
+        std::terminate();
+    }
 
-    j4.addTask(t4a);
-    j4.addTask(t4b);
-
-    j5.addTask(t5a);
-    j5.addTask(t5b);
-
+    JobDispatcher dispatcher(num_workers,max_job_queue);
     INotifyEventPoller inotify_poller;
 
-    IpgPostProcessor* ipg = new IpgPostProcessor(&dispatcher);
+    IpgPostProcessor* ipg = new IpgPostProcessor(&dispatcher,
+            ipg_exe_path,
+            ipg_watch_dir);
 
-    int wd = inotify_poller.addWatch("/home/zu/completed", IN_MOVED_TO);
+    int wd = inotify_poller.addWatch(ipg_watch_dir, IN_MOVED_TO);
     inotify_poller.addINotifyEventListener(wd,ipg);
 
     while(1)
     {
         if(inotify_poller.poll(-1) > 0)
-        {
             inotify_poller.service();
-        }
     }
 }
