@@ -93,6 +93,7 @@ uint32_t INotifyEvent::getMaskByName(const std::string& r_name)
         return IN_MOVE_SELF;
 #endif // IN_MOVE_SELF
 
+    return 0; //no matches
 }
 
 uint32_t INotifyEvent::parseEventMask(const std::string& event)
@@ -100,7 +101,7 @@ uint32_t INotifyEvent::parseEventMask(const std::string& event)
     uint32_t mask = 0;
     std::vector<std::string> inotify_events;
     tokenize(event, "|", inotify_events);
-    for(int i = 0; i < inotify_events.size(); ++i)
+    for(std::vector<std::string>::size_type i = 0; i < inotify_events.size(); ++i)
     {
         mask |= getMaskByName(inotify_events[i]);
     }
