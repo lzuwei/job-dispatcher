@@ -23,6 +23,7 @@
 					<Add library="/usr/local/lib/libboost_iostreams.so" />
 					<Add library="/usr/local/lib/libboost_atomic.so" />
 					<Add library="/usr/local/lib/libboost_chrono.so" />
+					<Add library="/usr/local/lib/libboost_program_options.so" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -43,6 +44,7 @@
 					<Add library="/usr/local/lib/libboost_iostreams.so" />
 					<Add library="/usr/local/lib/libboost_atomic.so" />
 					<Add library="/usr/local/lib/libboost_chrono.so" />
+					<Add library="/usr/local/lib/libboost_program_options.so" />
 				</Linker>
 			</Target>
 		</Build>

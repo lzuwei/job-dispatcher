@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
             ipg_exe_path,
             ipg_watch_dir);
 
-    int wd = inotify_poller.addWatch(ipg_watch_dir, IN_MOVED_TO);
+    int wd = inotify_poller.addWatch(ipg_watch_dir, IN_MODIFY);
     inotify_poller.addINotifyEventListener(wd,ipg);
 
     while(1)
