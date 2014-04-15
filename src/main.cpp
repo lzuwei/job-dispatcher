@@ -23,7 +23,7 @@
 #include <Job.h>
 
 #define APPLICATION_NAME "Job Dispatcher"
-#define VERSION_NUM "0.0.1"
+#define VERSION_NUM "0.0.2"
 #define COPYRIGHT "Copyright 2014 Immersive Labs. All rights reserved."
 
 using namespace std;
