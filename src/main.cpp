@@ -147,6 +147,7 @@ int main(int argc, char* argv[])
     int max_job_queue;
     std::string ipg_exe_path;
     std::string ipg_watch_dir;
+    std::string ipg_watch_event;
     try
     {
         boost::property_tree::ptree pt;
@@ -157,6 +158,7 @@ int main(int argc, char* argv[])
 
         ipg_exe_path = pt.get<std::string>("ipg.executable_path");
         ipg_watch_dir = pt.get<std::string>("ipg.watch_directory");
+        ipg_watch_event = pt.get<std::string>("ipg.watch_event");
 
         std::cout << num_workers << std::endl;
         std::cout << max_job_queue << std::endl;
@@ -181,7 +183,8 @@ int main(int argc, char* argv[])
             ipg_exe_path,
             ipg_watch_dir);
 
-    int wd = inotify_poller.addWatch(ipg_watch_dir, IN_MODIFY);
+    uint32_t event_mask = INotifyEvent::parseEventMask(ipg_watch_event);
+    int wd = inotify_poller.addWatch(ipg_watch_dir, event_mask);
     inotify_poller.addINotifyEventListener(wd,ipg);
 
     while(1)

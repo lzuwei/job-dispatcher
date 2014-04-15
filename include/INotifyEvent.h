@@ -36,8 +36,9 @@ public:
     ~INotifyEvent() {}
 
     //static helper methods
-    static uint32_t getMaskByName(const std::string& rName);
-    static void dumpTypes(uint32_t uValue, std::string& rStr);
+    static uint32_t parseEventMask(const std::string& event);
+    static uint32_t getMaskByName(const std::string& event);
+    static void dumpTypes(uint32_t uValue, std::string& r_str);
     static bool isType(uint32_t mask, uint32_t event_type)
     {
         return ((mask & event_type) != 0) && ((~mask & event_type) == 0);

@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <INotifyEvent.h>
 #include <INotifyWatch.h>
 
@@ -8,6 +10,32 @@
       r_str.append(","); \
     } \
   })
+
+/** \brief tokenizes a string.
+ *
+ * \param str const std::string& string to tokenize
+ * \param delim const std::string& delimiter
+ * \param tokenized std::vector<std::string>& tokenized string
+ * \return void
+ *
+ */
+static void tokenize(const std::string& str, const std::string& delim, std::vector<std::string>& tokenized)
+{
+    std::size_t prev = 0, curr = 0;
+    if(str.empty()) //empty, nothing to tokenize
+        return;
+
+    while(curr != std::string::npos)
+    {
+        std::string token;
+        curr = str.find_first_of(delim, curr);
+        token = str.substr(prev, curr - prev);
+        tokenized.push_back(token);
+        if(curr != std::string::npos)
+            curr += 1;
+        prev = curr;
+    }
+}
 
 uint32_t INotifyEvent::getMaskByName(const std::string& r_name)
 {
@@ -65,6 +93,18 @@ uint32_t INotifyEvent::getMaskByName(const std::string& r_name)
         return IN_MOVE_SELF;
 #endif // IN_MOVE_SELF
 
+}
+
+uint32_t INotifyEvent::parseEventMask(const std::string& event)
+{
+    uint32_t mask = 0;
+    std::vector<std::string> inotify_events;
+    tokenize(event, "|", inotify_events);
+    for(int i = 0; i < inotify_events.size(); ++i)
+    {
+        mask |= getMaskByName(inotify_events[i]);
+    }
+    return mask;
 }
 
 void INotifyEvent::dumpTypes(uint32_t value, std::string& r_str)
