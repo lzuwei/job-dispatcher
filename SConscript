@@ -77,4 +77,4 @@ print 'Libraries: ', env['LIBS']
 print 'Path: ', env['PATH']
 
 # Build Program
-env.Program('cara-emotion', source_files)
+env.Program('job-dispatcher', source_files)
