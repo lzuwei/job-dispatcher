@@ -12,6 +12,8 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+
 #include <boost/process.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -23,7 +25,7 @@
 #include <Job.h>
 
 #define APPLICATION_NAME "Job Dispatcher"
-#define VERSION_NUM "0.0.2"
+#define VERSION_NUM "0.0.3"
 #define COPYRIGHT "Copyright 2014 Immersive Labs. All rights reserved."
 
 using namespace std;
@@ -32,30 +34,50 @@ using namespace boost::process::initializers;
 using namespace imrsv;
 
 //Simple Concrete INotifyEventListener
-class IpgPostProcessor : public INotifyEventListener
+class AMSPostProcessor : public INotifyEventListener
 {
 public:
-    IpgPostProcessor(JobDispatcher* dispatcher, const std::string ipg_executable_path, const std::string& watch_directory) :
+
+    class NoProgramConfigExistsException : public std::exception
+    {
+    public:
+        virtual const char* what() const throw()
+        {
+            return "No Program Config Record Found!";
+        }
+    };
+
+    AMSPostProcessor(JobDispatcher* dispatcher, const std::string& watch_directory) :
         m_dispatcher(dispatcher),
-        m_ipg_executable_path(ipg_executable_path),
         m_watch_directory(watch_directory)
     {
 
     }
 
-    const std::string& ipg_executable_path() const
+    void addProgram(const std::string& program_name, const boost::property_tree::ptree& config)
     {
-        return m_ipg_executable_path;
+        m_program_configs[program_name] = config;
     }
+
+    void removeProgram(const std::string& program_name)
+    {
+        m_program_configs.erase(program_name);
+    }
+
+    const boost::property_tree::ptree& findProgram(const std::string& program_name)
+    {
+        std::map<std::string, boost::property_tree::ptree>::const_iterator found = m_program_configs.find(program_name);
+        if(found == m_program_configs.end())
+            throw NoProgramConfigExistsException();
+        else
+            return found->second;
+    }
+
     const std::string& watch_directory() const
     {
         return m_watch_directory;
     }
 
-    void setIpgExecutablePath(const std::string& path)
-    {
-        m_ipg_executable_path = path;
-    }
     void setWatchDirectory(const std::string& directory)
     {
         m_watch_directory = directory;
@@ -66,45 +88,89 @@ public:
         std::cout << e << std::endl;
         std::string filename = e.name();
 
-        //check for .ipg and .flv extensions
-        if(filename.find(".ipg") != std::string::npos && filename.find(".flv") != std::string::npos)
+        try
         {
-            Job j;
-            //extract the filename without the extensions
-            std::string::size_type pos = filename.find(".ipg");
-            std::string base_name = filename.substr(0, pos);
+            //check for .ipg and .flv extensions
+            if(filename.find(".ipg") != std::string::npos && filename.find(".flv") != std::string::npos)
+            {
 
-            std::string meta_data_file = base_name + ".json";
-            std::string output_file = base_name + ".output";
+                const boost::property_tree::ptree& config = findProgram("ipg");
+                std::string path = config.get<std::string>("path");
 
-            //create a job for the job dispatcher
-            Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
-            t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
-            Task t1b(m_ipg_executable_path,
-                     "-v " + filename + " -m " + meta_data_file + " -o " + output_file,
-                     m_watch_directory);
+                Job j;
+                //extract the filename without the extensions
+                std::string::size_type pos = filename.find_first_of(".");
+                std::string base_name = filename.substr(0, pos);
 
-            std::cout << t1a << std::endl;
-            std::cout << t1b << std::endl;
+                std::string meta_data_file = base_name + ".meta";
+                std::string output_file = base_name + ".output";
 
-            j.addTask(t1a);
-            j.addTask(t1b);
+                //create a job for the job dispatcher
+                Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
+                t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
+                Task t1b(path,
+                         "-v " + filename + " -m " + meta_data_file + " -o " + output_file,
+                         m_watch_directory);
 
-            m_dispatcher->addJob(j);
+                std::cout << t1a << std::endl;
+                std::cout << t1b << std::endl;
+
+                j.addTask(t1a);
+                j.addTask(t1b);
+
+                m_dispatcher->addJob(j);
+            }
+            if(filename.find(".emotion") != std::string::npos && filename.find(".flv") != std::string::npos)
+            {
+                const boost::property_tree::ptree& config = findProgram("emotion");
+                std::string path = config.get<std::string>("path");
+                std::string database = config.get<std::string>("database");
+                std::string collection = config.get<std::string>("collection");
+
+                Job j;
+                //extract the filename without the extensions
+                std::string::size_type pos = filename.find_first_of(".");
+                std::string base_name = filename.substr(0, pos);
+
+                std::string meta_data_file = base_name + ".meta";
+
+                //create a job for the job dispatcher
+                Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
+                t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
+                Task t1b(path,
+                         "--database=" + database + " --collection=" + collection + " --insert " + filename + " " + meta_data_file,
+                         m_watch_directory);
+
+                std::cout << t1a << std::endl;
+                std::cout << t1b << std::endl;
+
+                j.addTask(t1a);
+                j.addTask(t1b);
+
+                m_dispatcher->addJob(j);
+            }
+        }
+        catch (boost::property_tree::ptree_error& e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+        catch (NoProgramConfigExistsException& e)
+        {
+            std::cerr << e.what() << std::endl;
         }
     }
 
 private:
     JobDispatcher* m_dispatcher;
-    std::string m_ipg_executable_path;
     std::string m_watch_directory;
+    std::map<std::string, boost::property_tree::ptree> m_program_configs;
 };
 
 
 int main(int argc, char* argv[])
 {
     namespace po = boost::program_options;
-    po::options_description description("Usage: job-dispatcher --config [FILE]");
+    po::options_description description("Usage: job-dispatcher --config=[FILE]");
 
     //add program options
     description.add_options()
@@ -145,25 +211,33 @@ int main(int argc, char* argv[])
     //parse the json config file to obtain configuration
     int num_workers;
     int max_job_queue;
-    std::string ipg_exe_path;
     std::string ipg_watch_dir;
     std::string ipg_watch_event;
+
+    //property trees
+    boost::property_tree::ptree pt;
+    boost::property_tree::ptree dispatcher_conf;
+    boost::property_tree::ptree ipg_conf;
+    boost::property_tree::ptree emotion_conf;
+
     try
     {
-        boost::property_tree::ptree pt;
         boost::property_tree::read_json(config_file, pt);
 
-        num_workers = pt.get<int>("dispatcher.num_workers");
-        max_job_queue = pt.get<int>("dispatcher.max_job_queue");
+        dispatcher_conf = pt.get_child("dispatcher");
+        ipg_conf = pt.get_child("ipg");
+        emotion_conf = pt.get_child("emotion");
 
-        ipg_exe_path = pt.get<std::string>("ipg.executable_path");
-        ipg_watch_dir = pt.get<std::string>("ipg.watch_directory");
-        ipg_watch_event = pt.get<std::string>("ipg.watch_event");
+        num_workers = dispatcher_conf.get<int>("num_workers");
+        max_job_queue = dispatcher_conf.get<int>("max_job_queue");
+
+        ipg_watch_dir = ipg_conf.get<std::string>("watch_directory");
+        ipg_watch_event = ipg_conf.get<std::string>("watch_event");
 
         std::cout << num_workers << std::endl;
         std::cout << max_job_queue << std::endl;
-        std::cout << ipg_exe_path << std::endl;
         std::cout << ipg_watch_dir << std::endl;
+
     }
     catch (boost::property_tree::json_parser::json_parser_error& e)
     {
@@ -179,13 +253,15 @@ int main(int argc, char* argv[])
     JobDispatcher dispatcher(num_workers,max_job_queue);
     INotifyEventPoller inotify_poller;
 
-    IpgPostProcessor* ipg = new IpgPostProcessor(&dispatcher,
-            ipg_exe_path,
-            ipg_watch_dir);
+    AMSPostProcessor* ams = new AMSPostProcessor(&dispatcher, ipg_watch_dir);
+
+    //add the programs that ams will run
+    ams->addProgram("ipg", ipg_conf);
+    ams->addProgram("emotion", emotion_conf);
 
     uint32_t event_mask = INotifyEvent::parseEventMask(ipg_watch_event);
     int wd = inotify_poller.addWatch(ipg_watch_dir, event_mask);
-    inotify_poller.addINotifyEventListener(wd,ipg);
+    inotify_poller.addINotifyEventListener(wd,ams);
 
     while(1)
     {
