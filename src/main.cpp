@@ -120,7 +120,7 @@ public:
 
                 m_dispatcher->addJob(j);
             }
-            if(filename.find(".emotion") != std::string::npos && filename.find(".flv") != std::string::npos)
+            if(filename.find(".emo") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
                 const boost::property_tree::ptree& config = findProgram("emotion");
                 std::string path = config.get<std::string>("path");
