@@ -1,5 +1,4 @@
-#ifndef JOBDISPATCHER_H
-#define JOBDISPATCHER_H
+#pragma once
 
 #include <vector>
 #include <queue>
@@ -16,7 +15,7 @@ namespace imrsv
 class JobDispatcher
 {
 public:
-    JobDispatcher(int num_workers = 4, int max_queue = 100) :
+    JobDispatcher(int num_workers = boost::thread::hardware_concurrency() - 1, int max_queue = 100) :
         m_max_queue_size(max_queue),
         m_num_workers(num_workers),
         m_idle_workers(num_workers),
@@ -180,6 +179,3 @@ private:
 };
 }
 
-
-
-#endif // JOBDISPATCHER_H

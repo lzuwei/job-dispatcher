@@ -18,6 +18,7 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/thread.hpp>
 
 #include <INotifyEventPoller.h>
 #include <INotifyEventListener.h>
@@ -25,7 +26,7 @@
 #include <Job.h>
 
 #define APPLICATION_NAME "Job Dispatcher"
-#define VERSION_NUM "0.0.3"
+#define VERSION_NUM "0.0.4"
 #define COPYRIGHT "Copyright 2014 Immersive Labs. All rights reserved."
 
 using namespace std;
@@ -171,7 +172,6 @@ private:
     std::map<std::string, boost::property_tree::ptree> m_program_configs;
 };
 
-
 int main(int argc, char* argv[])
 {
     namespace po = boost::program_options;
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
         ipg_conf = pt.get_child("ipg");
         emotion_conf = pt.get_child("emotion");
 
-        num_workers = dispatcher_conf.get<int>("num_workers");
+        num_workers = dispatcher_conf.get<int>("num_workers",boost::thread::hardware_concurrency() - 1);
         max_job_queue = dispatcher_conf.get<int>("max_job_queue");
 
         ipg_watch_dir = ipg_conf.get<std::string>("watch_directory");
