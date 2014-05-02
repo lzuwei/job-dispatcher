@@ -150,7 +150,7 @@ public:
 
     void run()
     {
-        std::cout << *this << "started" <<std::endl;
+        std::cout << *this << " started" <<std::endl;
         while(!m_tasks.empty())
         {
             Task t = m_tasks.front();

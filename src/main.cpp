@@ -125,7 +125,8 @@ public:
                 const boost::property_tree::ptree& config = findProgram("emotion");
                 std::string path = config.get<std::string>("path");
                 std::string database = config.get<std::string>("database");
-                std::string collection = config.get<std::string>("collection");
+                std::string collection_data = config.get<std::string>("collection_data");
+                std::string collection_results = config.get<std::string>("collection_results");
 
                 Job j;
                 //extract the filename without the extensions
@@ -138,7 +139,11 @@ public:
                 Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
                 t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
                 Task t1b(path,
-                         "--database=" + database + " --collection=" + collection + " --insert " + filename + " " + meta_data_file,
+                         "--database=" + database
+                         + " --collection_data=" + collection_data
+                         + " --collection_results=" + collection_results
+                         + " --insert " + filename
+                         + " " + meta_data_file,
                          m_watch_directory);
 
                 std::cout << t1a << std::endl;
