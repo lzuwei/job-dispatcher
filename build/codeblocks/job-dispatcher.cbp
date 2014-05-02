@@ -14,6 +14,7 @@
 				<Option compiler="gcc" />
 				<Option parameters="--config=job-dispatcher.conf" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add directory="../../include" />
 				</Compiler>
@@ -36,6 +37,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c++11" />
 					<Add directory="../../include" />
 				</Compiler>
 				<Linker>
