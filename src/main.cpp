@@ -11,6 +11,7 @@
 #define INOTIFY_BUF_LEN (1024 * (INOTIFY_EVENT_SIZE + 16))
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <map>
 
@@ -123,11 +124,16 @@ public:
             }
             if(filename.find(".emo") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
+                std::ostringstream oss;
                 const boost::property_tree::ptree& config = findProgram("emotion");
                 std::string path = config.get<std::string>("path");
                 std::string database = config.get<std::string>("database");
                 std::string collection_data = config.get<std::string>("collection_data");
                 std::string collection_results = config.get<std::string>("collection_results");
+
+                //get the sampling rate and conver to string
+                oss << config.get<int>("sampling");
+                std::string  sampling_rate = oss.str();
 
                 Job j;
                 //extract the filename without the extensions
@@ -143,6 +149,7 @@ public:
                          "--database=" + database
                          + " --collection_data=" + collection_data
                          + " --collection_results=" + collection_results
+                         + " --sampling_rate=" + sampling_rate
                          + " --insert " + filename
                          + " " + meta_data_file,
                          m_watch_directory);
