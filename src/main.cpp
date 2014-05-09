@@ -127,32 +127,60 @@ public:
                 std::ostringstream oss;
                 const boost::property_tree::ptree& config = findProgram("emotion");
                 std::string path = config.get<std::string>("path");
-                std::string database = config.get<std::string>("database");
-                std::string collection_data = config.get<std::string>("collection_data");
-                std::string collection_results = config.get<std::string>("collection_results");
 
-                //get the sampling rate and conver to string
-                oss << config.get<int>("sampling");
-                std::string  sampling_rate = oss.str();
+                //emotion server arguments
+                std::string database = config.get<std::string>("database","");
+                std::string collection_data = config.get<std::string>("collection_data","");
+                std::string collection_results = config.get<std::string>("collection_results","");
+                bool realtime = config.get<bool>("realtime",false);
+                bool print = config.get<bool>("print",false);
+                bool print_raw = config.get<bool>("print_raw",false);
+                int sampling_rate = config.get<int>("sampling",-1);
+
+                //now we construct the arguments, remember to put spacing at end of each option
+                std::string arguments = "";
+
+                //look for db
+                if(!database.empty())
+                    arguments.append("--database=" + database + " ");
+
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
+
+                if(!collection_results.empty())
+                    arguments.append("--collection_results=" + collection_results + " ");
+
+                if(!realtime)
+                    arguments.append("--realtime ");
+
+                if(sampling_rate != -1)
+                {
+                    //get the sampling rate and conver to string
+                    oss << sampling_rate;
+                    arguments.append("--sampling_rate=" + oss.str() + " ");
+                }
+
+                if(print)
+                    arguments.append("--print ");
+
+                if(print_raw)
+                    arguments.append("--print_raw ");
 
                 Job j;
                 //extract the filename without the extensions
                 std::string::size_type pos = filename.find_first_of(".");
                 std::string base_name = filename.substr(0, pos);
-
                 std::string meta_data_file = base_name + ".meta";
+
+                //mandatory arguments
+                arguments.append("--insert ")
+                .append(filename + " ")
+                .append(meta_data_file);
 
                 //create a job for the job dispatcher
                 Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
                 t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
-                Task t1b(path,
-                         "--database=" + database
-                         + " --collection_data=" + collection_data
-                         + " --collection_results=" + collection_results
-                         + " --sampling_rate=" + sampling_rate
-                         + " --insert " + filename
-                         + " " + meta_data_file,
-                         m_watch_directory);
+                Task t1b(path, arguments, m_watch_directory);
 
                 std::cout << t1a << std::endl;
                 std::cout << t1b << std::endl;
