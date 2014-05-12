@@ -150,7 +150,7 @@ public:
                 if(!collection_results.empty())
                     arguments.append("--collection_results=" + collection_results + " ");
 
-                if(!realtime)
+                if(realtime)
                     arguments.append("--realtime ");
 
                 if(sampling_rate != -1)
