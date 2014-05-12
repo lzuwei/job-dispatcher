@@ -135,6 +135,7 @@ public:
                 bool realtime = config.get<bool>("realtime",false);
                 bool print = config.get<bool>("print",false);
                 bool print_raw = config.get<bool>("print_raw",false);
+                bool print_time = config.get<bool>("print_time",false);
                 int sampling_rate = config.get<int>("sampling",-1);
 
                 //now we construct the arguments, remember to put spacing at end of each option
@@ -165,6 +166,9 @@ public:
 
                 if(print_raw)
                     arguments.append("--print_raw ");
+
+                if(print_time)
+                    arguments.append("--print_time ");
 
                 Job j;
                 //extract the filename without the extensions
