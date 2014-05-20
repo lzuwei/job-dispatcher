@@ -137,6 +137,7 @@ public:
                 bool print_raw = config.get<bool>("print_raw",false);
                 bool print_time = config.get<bool>("print_time",false);
                 int sampling_rate = config.get<int>("sampling",-1);
+		bool verbose = config.get<bool>("verbose",false);
 
                 //now we construct the arguments, remember to put spacing at end of each option
                 std::string arguments = "";
@@ -169,6 +170,9 @@ public:
 
                 if(print_time)
                     arguments.append("--print_time ");
+		
+		if(verbose)
+		    arguments.append("--verbose ");
 
                 Job j;
                 //extract the filename without the extensions

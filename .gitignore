@@ -1,0 +1,8 @@
+.sconsign.dblite
+build/codeblocks/bin/
+build/codeblocks/doxygen/
+build/codeblocks/job-dispatcher.layout
+build/codeblocks/obj/
+build/gcc/job-dispatcher
+build/gcc/obj/
+build/scons/
