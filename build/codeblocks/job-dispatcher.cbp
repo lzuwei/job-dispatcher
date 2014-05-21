@@ -17,6 +17,7 @@
 					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add directory="../../include" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add library="/usr/local/lib/libboost_random.so" />
@@ -39,6 +40,7 @@
 					<Add option="-O2" />
 					<Add option="-std=c++11" />
 					<Add directory="../../include" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -57,6 +59,7 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="../../include/EpollEventPoller.h" />
 		<Unit filename="../../include/EventPoller.h" />
 		<Unit filename="../../include/INotifyEvent.h" />
 		<Unit filename="../../include/INotifyEventListener.h" />
@@ -64,9 +67,16 @@
 		<Unit filename="../../include/INotifyWatch.h" />
 		<Unit filename="../../include/Job.h" />
 		<Unit filename="../../include/JobDispatcher.h" />
+		<Unit filename="../../include/TCPAcceptor.h" />
+		<Unit filename="../../include/TCPServer.h" />
+		<Unit filename="../../include/TCPStream.h" />
+		<Unit filename="../../src/EpollEventPoller.cpp" />
 		<Unit filename="../../src/INotifyEvent.cpp" />
 		<Unit filename="../../src/INotifyEventPoller.cpp" />
 		<Unit filename="../../src/INotifyWatch.cpp" />
+		<Unit filename="../../src/TCPAcceptor.cpp" />
+		<Unit filename="../../src/TCPServer.cpp" />
+		<Unit filename="../../src/TCPStream.cpp" />
 		<Unit filename="../../src/main.cpp" />
 		<Extensions>
 			<code_completion />

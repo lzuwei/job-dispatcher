@@ -25,7 +25,7 @@
 	<boost/process.hpp>
 	<boost/random.hpp>
 
-1399009543 source:/home/imrsv/workspace/job-dispatcher/src/main.cpp
+1400574500 source:/home/imrsv/workspace/job-dispatcher/src/main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<errno.h>
@@ -34,18 +34,20 @@
 	<sys/inotify.h>
 	<sys/epoll.h>
 	<iostream>
+	<sstream>
 	<vector>
 	<map>
 	<boost/process.hpp>
 	<boost/program_options.hpp>
 	<boost/property_tree/ptree.hpp>
 	<boost/property_tree/json_parser.hpp>
+	<boost/thread.hpp>
 	<INotifyEventPoller.h>
 	<INotifyEventListener.h>
 	<JobDispatcher.h>
 	<Job.h>
 
-1399022465 /home/imrsv/workspace/job-dispatcher/include/JobDispatcher.h
+1399026351 /home/imrsv/workspace/job-dispatcher/include/JobDispatcher.h
 	<vector>
 	<queue>
 	<boost/thread.hpp>
@@ -176,4 +178,44 @@
 
 1397237165 source:/home/zu/workspace/job-dispatcher/src/INotifyWatch.cpp
 	<INotifyWatch.h>
+
+1400653652 source:/home/imrsv/workspace/job-dispatcher/src/TCPStream.cpp
+	<sys/types.h>
+	<unistd.h>
+	<arpa/inet.h>
+	<TCPStream.h>
+
+1400652434 /home/imrsv/workspace/job-dispatcher/include/TCPStream.h
+	<string>
+
+1400657553 source:/home/imrsv/workspace/job-dispatcher/src/TCPAcceptor.cpp
+	<stdio.h>
+	<string.h>
+	<arpa/inet.h>
+	<unistd.h>
+	<sys/socket.h>
+	<TCPAcceptor.h>
+
+1400655630 /home/imrsv/workspace/job-dispatcher/include/TCPAcceptor.h
+	<string>
+	<netinet/in.h>
+	<TCPStream.h>
+
+1400665568 source:/home/imrsv/workspace/job-dispatcher/src/EPollEventPoller.cpp
+	<fcntl.h>
+	<sys/epoll.h>
+	<errno.h>
+	<stdio.h>
+	<EPollEventPoller.h>
+
+1400665278 /home/imrsv/workspace/job-dispatcher/include/EPollEventPoller.h
+	<EventPoller.h>
+
+1400666853 source:/home/imrsv/workspace/job-dispatcher/src/TCPServer.cpp
+	<TCPServer.h>
+	<EPollEventPoller.h>
+	<TCPStream.h>
+	<TCPAcceptor.h>
+
+1400666895 /home/imrsv/workspace/job-dispatcher/include/TCPServer.h
 
