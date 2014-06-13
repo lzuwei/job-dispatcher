@@ -209,7 +209,7 @@ public:
             if(filename.find(".emo-dev.") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
                 std::ostringstream oss;
-                const boost::property_tree::ptree& config = findProgram("emo");
+                const boost::property_tree::ptree& config = findProgram("emo-dev");
                 std::string path = config.get<std::string>("path");
 
                 //emotion server arguments
