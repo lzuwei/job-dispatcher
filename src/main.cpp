@@ -122,7 +122,7 @@ public:
 
                 m_dispatcher->addJob(j);
             }
-            if(filename.find(".emo") != std::string::npos && filename.find(".flv") != std::string::npos)
+            if(filename.find(".emo.") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
                 std::ostringstream oss;
                 const boost::property_tree::ptree& config = findProgram("emo");
@@ -206,7 +206,7 @@ public:
 
                 m_dispatcher->addJob(j);
             }
-            if(filename.find(".emo-dev") != std::string::npos && filename.find(".flv") != std::string::npos)
+            if(filename.find(".emo-dev.") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
                 std::ostringstream oss;
                 const boost::property_tree::ptree& config = findProgram("emo");
