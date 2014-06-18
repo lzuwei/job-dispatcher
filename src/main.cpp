@@ -235,6 +235,9 @@ public:
                 if(!database_results.empty())
                     arguments.append("--database_results=" + database_results + " ");
 
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
+                    
                 if(!collection_results.empty())
                     arguments.append("--collection_results=" + collection_results + " ");
 
@@ -315,6 +318,9 @@ public:
 
                 if(!database_results.empty())
                     arguments.append("--database_results=" + database_results + " ");
+                    
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
 
                 if(!collection_results.empty())
                     arguments.append("--collection_results=" + collection_results + " ");
