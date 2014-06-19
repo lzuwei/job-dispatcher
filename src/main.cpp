@@ -206,6 +206,90 @@ public:
 
                 m_dispatcher->addJob(j);
             }
+            if(filename.find(".ipg-prod.") != std::string::npos && filename.find(".flv") != std::string::npos)
+            {
+                std::ostringstream oss;
+                const boost::property_tree::ptree& config = findProgram("ipg-prod");
+                std::string path = config.get<std::string>("path");
+
+                //emotion server arguments
+                std::string database_data = config.get<std::string>("database_data","");
+                std::string database_results = config.get<std::string>("database_results","");
+                std::string collection_data = config.get<std::string>("collection_data","");
+                std::string collection_results = config.get<std::string>("collection_results","");
+                std::string bin_results_fieldname = config.get<std::string>("bin_results_fieldname","");
+                bool realtime = config.get<bool>("realtime",false);
+                bool print = config.get<bool>("print",false);
+                bool print_raw = config.get<bool>("print_raw",false);
+                bool print_time = config.get<bool>("print_time",false);
+                int sampling_rate = config.get<int>("sampling",-1);
+                bool verbose = config.get<bool>("verbose",false);
+
+                //now we construct the arguments, remember to put spacing at end of each option
+                std::string arguments = "";
+
+                //look for db
+                if(!database_data.empty())
+                    arguments.append("--database_data=" + database_data + " ");
+
+                if(!database_results.empty())
+                    arguments.append("--database_results=" + database_results + " ");
+
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
+
+                if(!collection_results.empty())
+                    arguments.append("--collection_results=" + collection_results + " ");
+
+                if(!bin_results_fieldname.empty())
+                    arguments.append("--bin_results_fieldname=" + bin_results_fieldname + " ");
+
+                if(realtime)
+                    arguments.append("--realtime ");
+
+                if(sampling_rate != -1)
+                {
+                    //get the sampling rate and conver to string
+                    oss << sampling_rate;
+                    arguments.append("--sampling_rate=" + oss.str() + " ");
+                }
+
+                if(print)
+                    arguments.append("--print ");
+
+                if(print_raw)
+                    arguments.append("--print_raw ");
+
+                if(print_time)
+                    arguments.append("--print_time ");
+
+                if(verbose)
+                    arguments.append("--verbose ");
+
+                Job j;
+                //extract the filename without the extensions
+                std::string::size_type pos = filename.find_first_of(".");
+                std::string base_name = filename.substr(0, pos);
+                std::string meta_data_file = base_name + ".meta";
+
+                //mandatory arguments
+                arguments.append("--insert ")
+                .append(filename + " ")
+                .append(meta_data_file);
+
+                //create a job for the job dispatcher
+                Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
+                t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
+                Task t1b(path, arguments, m_watch_directory);
+
+                std::cout << t1a << std::endl;
+                std::cout << t1b << std::endl;
+
+                j.addTask(t1a);
+                j.addTask(t1b);
+
+                m_dispatcher->addJob(j);
+            }
             if(filename.find(".emo-dev.") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
                 std::ostringstream oss;
@@ -444,6 +528,7 @@ int main(int argc, char* argv[])
     boost::property_tree::ptree ipg_old_conf;
     boost::property_tree::ptree emo_conf;
     boost::property_tree::ptree emo_dev_conf;
+    boost::property_tree::ptree ipg_conf;
     boost::property_tree::ptree ipg_dev_conf;
 
     try
@@ -454,6 +539,7 @@ int main(int argc, char* argv[])
         ipg_old_conf = pt.get_child("ipg");
         emo_conf = pt.get_child("emo");
         emo_dev_conf = pt.get_child("emo-dev");
+        ipg_conf = pt.get_child("ipg-prod");
         ipg_dev_conf = pt.get_child("ipg-dev");
 
         num_workers = dispatcher_conf.get<int>("num_workers",boost::thread::hardware_concurrency() - 1);
@@ -487,6 +573,7 @@ int main(int argc, char* argv[])
     ams->addProgram("emo", emo_conf);
     ams->addProgram("emo-dev", emo_dev_conf);
     ams->addProgram("ipg", ipg_old_conf);
+    ams->addProgram("ipg-prod", ipg_conf);
     ams->addProgram("ipg-dev", ipg_dev_conf);
 
     uint32_t event_mask = INotifyEvent::parseEventMask(ipg_watch_event);
