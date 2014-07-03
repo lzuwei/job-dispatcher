@@ -134,6 +134,7 @@ public:
                 std::string collection_data = config.get<std::string>("collection_data","");
                 std::string collection_results = config.get<std::string>("collection_results","");
                 std::string bin_results_fieldname = config.get<std::string>("bin_results_fieldname","");
+                std::string done_processing_dir = config.get<std::string>("done_processing_dir","");
                 bool realtime = config.get<bool>("realtime",false);
                 bool print = config.get<bool>("print",false);
                 bool print_raw = config.get<bool>("print_raw",false);
@@ -179,8 +180,8 @@ public:
                 if(print_time)
                     arguments.append("--print_time ");
 
-		if(verbose)
-		    arguments.append("--verbose ");
+                if(verbose)
+                    arguments.append("--verbose ");
 
                 Job j;
                 //extract the filename without the extensions
@@ -204,6 +205,13 @@ public:
                 j.addTask(t1a);
                 j.addTask(t1b);
 
+                if(!done_processing_dir.empty())
+                {
+                    Task t1c("/bin/mv", "-f " + filename + " " + meta_data_file + " " + done_processing_dir, m_watch_directory);
+                    std::cout << t1c << std::endl;
+                    j.addTask(t1c);
+                }
+
                 m_dispatcher->addJob(j);
             }
             if(filename.find(".emo-dev.") != std::string::npos && filename.find(".flv") != std::string::npos)
@@ -218,6 +226,7 @@ public:
                 std::string collection_data = config.get<std::string>("collection_data","");
                 std::string collection_results = config.get<std::string>("collection_results","");
                 std::string bin_results_fieldname = config.get<std::string>("bin_results_fieldname","");
+                std::string done_processing_dir = config.get<std::string>("done_processing_dir","");
                 bool realtime = config.get<bool>("realtime",false);
                 bool print = config.get<bool>("print",false);
                 bool print_raw = config.get<bool>("print_raw",false);
@@ -260,8 +269,8 @@ public:
                 if(print_time)
                     arguments.append("--print_time ");
 
-		if(verbose)
-		    arguments.append("--verbose ");
+                if(verbose)
+                    arguments.append("--verbose ");
 
                 Job j;
                 //extract the filename without the extensions
@@ -284,6 +293,13 @@ public:
 
                 j.addTask(t1a);
                 j.addTask(t1b);
+
+                if(!done_processing_dir.empty())
+                {
+                    Task t1c("/bin/mv", "-f " + filename + " " + meta_data_file + " " + done_processing_dir, m_watch_directory);
+                    std::cout << t1c << std::endl;
+                    j.addTask(t1c);
+                }
 
                 m_dispatcher->addJob(j);
             }

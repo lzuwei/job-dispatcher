@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <queue>
 #include <string>
+#include <utility>
 #include <boost/process.hpp>
 #include <boost/process/mitigate.hpp>
 #include <boost/random.hpp>
@@ -148,12 +149,19 @@ public:
         m_tasks.push(task);
     }
 
+    void clearAllTasks()
+    {
+        std::queue<Task> empty;
+        std::swap(m_tasks, empty);
+    }
+
     void run()
     {
         std::cout << *this << " started" <<std::endl;
         while(!m_tasks.empty())
         {
             Task t = m_tasks.front();
+            int exit_code = 0;
 
             if(t.redirect_stdout().empty())
             {
@@ -163,8 +171,9 @@ public:
                                   inherit_env()
                                  );
                 //convert the return code to platform independent ret codes
-                int exit_code = wait_for_exit(c);
-                BOOST_PROCESS_EXITSTATUS(exit_code);
+                exit_code = wait_for_exit(c);
+                exit_code = BOOST_PROCESS_EXITSTATUS(exit_code);
+                std::cout << "Task " << t.task_id() << " completed with exit status: " << exit_code << std::endl;
             }
             else
             {
@@ -176,10 +185,20 @@ public:
                                   inherit_env()
                                  );
                 //convert the return code to platform independent ret codes
-                int exit_code = wait_for_exit(c);
-                BOOST_PROCESS_EXITSTATUS(exit_code);
+                exit_code = wait_for_exit(c);
+                exit_code = BOOST_PROCESS_EXITSTATUS(exit_code);
+                std::cout << "Task " << t.task_id() << " completed with exit status: " << exit_code << std::endl;
             }
-            m_tasks.pop();
+
+            //check if last task was completed successfully
+            //TODO: add callback mechanism, notify on failure and success for user action
+            if(exit_code > 0)
+            {
+                std::cout << "Error when running job " << m_job_id << " aborting subsequent tasks..." << std::endl;
+                clearAllTasks();
+            }
+            else
+                m_tasks.pop();
         }
     }
 
