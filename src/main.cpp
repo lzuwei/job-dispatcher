@@ -27,7 +27,7 @@
 #include <Job.h>
 
 #define APPLICATION_NAME "Job Dispatcher"
-#define VERSION_NUM "0.0.4"
+#define VERSION_NUM "0.0.5"
 #define COPYRIGHT "Copyright 2014 Immersive Labs. All rights reserved."
 
 using namespace std;
@@ -214,6 +214,90 @@ public:
 
                 m_dispatcher->addJob(j);
             }
+            if(filename.find(".ipg-prod.") != std::string::npos && filename.find(".flv") != std::string::npos)
+            {
+                std::ostringstream oss;
+                const boost::property_tree::ptree& config = findProgram("ipg-prod");
+                std::string path = config.get<std::string>("path");
+
+                //emotion server arguments
+                std::string database_data = config.get<std::string>("database_data","");
+                std::string database_results = config.get<std::string>("database_results","");
+                std::string collection_data = config.get<std::string>("collection_data","");
+                std::string collection_results = config.get<std::string>("collection_results","");
+                std::string bin_results_fieldname = config.get<std::string>("bin_results_fieldname","");
+                bool realtime = config.get<bool>("realtime",false);
+                bool print = config.get<bool>("print",false);
+                bool print_raw = config.get<bool>("print_raw",false);
+                bool print_time = config.get<bool>("print_time",false);
+                int sampling_rate = config.get<int>("sampling",-1);
+                bool verbose = config.get<bool>("verbose",false);
+
+                //now we construct the arguments, remember to put spacing at end of each option
+                std::string arguments = "";
+
+                //look for db
+                if(!database_data.empty())
+                    arguments.append("--database_data=" + database_data + " ");
+
+                if(!database_results.empty())
+                    arguments.append("--database_results=" + database_results + " ");
+
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
+
+                if(!collection_results.empty())
+                    arguments.append("--collection_results=" + collection_results + " ");
+
+                if(!bin_results_fieldname.empty())
+                    arguments.append("--bin_results_fieldname=" + bin_results_fieldname + " ");
+
+                if(realtime)
+                    arguments.append("--realtime ");
+
+                if(sampling_rate != -1)
+                {
+                    //get the sampling rate and conver to string
+                    oss << sampling_rate;
+                    arguments.append("--sampling_rate=" + oss.str() + " ");
+                }
+
+                if(print)
+                    arguments.append("--print ");
+
+                if(print_raw)
+                    arguments.append("--print_raw ");
+
+                if(print_time)
+                    arguments.append("--print_time ");
+
+                if(verbose)
+                    arguments.append("--verbose ");
+
+                Job j;
+                //extract the filename without the extensions
+                std::string::size_type pos = filename.find_first_of(".");
+                std::string base_name = filename.substr(0, pos);
+                std::string meta_data_file = base_name + ".meta";
+
+                //mandatory arguments
+                arguments.append("--insert ")
+                .append(filename + " ")
+                .append(meta_data_file);
+
+                //create a job for the job dispatcher
+                Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
+                t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
+                Task t1b(path, arguments, m_watch_directory);
+
+                std::cout << t1a << std::endl;
+                std::cout << t1b << std::endl;
+
+                j.addTask(t1a);
+                j.addTask(t1b);
+
+                m_dispatcher->addJob(j);
+            }
             if(filename.find(".emo-dev.") != std::string::npos && filename.find(".flv") != std::string::npos)
             {
                 std::ostringstream oss;
@@ -243,6 +327,9 @@ public:
 
                 if(!database_results.empty())
                     arguments.append("--database_results=" + database_results + " ");
+
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
 
                 if(!collection_results.empty())
                     arguments.append("--collection_results=" + collection_results + " ");
@@ -303,6 +390,90 @@ public:
 
                 m_dispatcher->addJob(j);
             }
+            if(filename.find(".ipg-dev.") != std::string::npos && filename.find(".flv") != std::string::npos)
+            {
+                std::ostringstream oss;
+                const boost::property_tree::ptree& config = findProgram("ipg-dev");
+                std::string path = config.get<std::string>("path");
+
+                //emotion server arguments
+                std::string database_data = config.get<std::string>("database_data","");
+                std::string database_results = config.get<std::string>("database_results","");
+                std::string collection_data = config.get<std::string>("collection_data","");
+                std::string collection_results = config.get<std::string>("collection_results","");
+                std::string bin_results_fieldname = config.get<std::string>("bin_results_fieldname","");
+                bool realtime = config.get<bool>("realtime",false);
+                bool print = config.get<bool>("print",false);
+                bool print_raw = config.get<bool>("print_raw",false);
+                bool print_time = config.get<bool>("print_time",false);
+                int sampling_rate = config.get<int>("sampling",-1);
+                bool verbose = config.get<bool>("verbose",false);
+
+                //now we construct the arguments, remember to put spacing at end of each option
+                std::string arguments = "";
+
+                //look for db
+                if(!database_data.empty())
+                    arguments.append("--database_data=" + database_data + " ");
+
+                if(!database_results.empty())
+                    arguments.append("--database_results=" + database_results + " ");
+
+                if(!collection_data.empty())
+                    arguments.append("--collection_data=" + collection_data + " ");
+
+                if(!collection_results.empty())
+                    arguments.append("--collection_results=" + collection_results + " ");
+
+                if(!bin_results_fieldname.empty())
+                    arguments.append("--bin_results_fieldname=" + bin_results_fieldname + " ");
+
+                if(realtime)
+                    arguments.append("--realtime ");
+
+                if(sampling_rate != -1)
+                {
+                    //get the sampling rate and conver to string
+                    oss << sampling_rate;
+                    arguments.append("--sampling_rate=" + oss.str() + " ");
+                }
+
+                if(print)
+                    arguments.append("--print ");
+
+                if(print_raw)
+                    arguments.append("--print_raw ");
+
+                if(print_time)
+                    arguments.append("--print_time ");
+
+                if(verbose)
+                    arguments.append("--verbose ");
+
+                Job j;
+                //extract the filename without the extensions
+                std::string::size_type pos = filename.find_first_of(".");
+                std::string base_name = filename.substr(0, pos);
+                std::string meta_data_file = base_name + ".meta";
+
+                //mandatory arguments
+                arguments.append("--insert ")
+                .append(filename + " ")
+                .append(meta_data_file);
+
+                //create a job for the job dispatcher
+                Task t1a("/usr/local/bin/flvmeta", "-F -j " + filename, m_watch_directory);
+                t1a.setRedirectStdOut(m_watch_directory + "/" + meta_data_file);
+                Task t1b(path, arguments, m_watch_directory);
+
+                std::cout << t1a << std::endl;
+                std::cout << t1b << std::endl;
+
+                j.addTask(t1a);
+                j.addTask(t1b);
+
+                m_dispatcher->addJob(j);
+            }
         }
         catch (boost::property_tree::ptree_error& e)
         {
@@ -323,6 +494,7 @@ private:
 int main(int argc, char* argv[])
 {
     namespace po = boost::program_options;
+
     po::options_description description("Usage: job-dispatcher --config=[FILE]");
 
     //add program options
@@ -364,34 +536,20 @@ int main(int argc, char* argv[])
     //parse the json config file to obtain configuration
     int num_workers;
     int max_job_queue;
-    std::string ipg_watch_dir;
-    std::string ipg_watch_event;
 
     //property trees
     boost::property_tree::ptree pt;
-    boost::property_tree::ptree dispatcher_conf;
-    boost::property_tree::ptree ipg_conf;
-    boost::property_tree::ptree emo_conf;
-    boost::property_tree::ptree emo_dev_conf;
 
     try
     {
         boost::property_tree::read_json(config_file, pt);
 
-        dispatcher_conf = pt.get_child("dispatcher");
-        ipg_conf = pt.get_child("ipg");
-        emo_conf = pt.get_child("emo");
-        emo_dev_conf = pt.get_child("emo-dev");
-
+        boost::property_tree::ptree dispatcher_conf = pt.get_child("dispatcher");
         num_workers = dispatcher_conf.get<int>("num_workers",boost::thread::hardware_concurrency() - 1);
         max_job_queue = dispatcher_conf.get<int>("max_job_queue");
 
-        ipg_watch_dir = ipg_conf.get<std::string>("watch_directory");
-        ipg_watch_event = ipg_conf.get<std::string>("watch_event");
-
         std::cout << num_workers << std::endl;
         std::cout << max_job_queue << std::endl;
-        std::cout << ipg_watch_dir << std::endl;
 
     }
     catch (boost::property_tree::json_parser::json_parser_error& e)
@@ -405,19 +563,35 @@ int main(int argc, char* argv[])
         std::terminate();
     }
 
+    //Job dispatcher successfully initialized
     JobDispatcher dispatcher(num_workers,max_job_queue);
     INotifyEventPoller inotify_poller;
 
-    AMSPostProcessor* ams = new AMSPostProcessor(&dispatcher, ipg_watch_dir);
+    try //try looking for ams conf
+    {
+        boost::property_tree::ptree ams_conf;
+        ams_conf = pt.get_child("ams");
+        std::string ams_watch_directory = ams_conf.get<std::string>("watch_directory");
+        std::string ams_watch_event = ams_conf.get<std::string>("watch_event");
 
-    //add the programs that ams will run
-    ams->addProgram("ipg", ipg_conf);
-    ams->addProgram("emo", emo_conf);
-    ams->addProgram("emo-dev", emo_dev_conf);
+        std::cout << "AMS watch directory: " << ams_watch_directory << std::endl;
+        std::cout << "AMS watch event: " << ams_watch_event << std::endl;
 
-    uint32_t event_mask = INotifyEvent::parseEventMask(ipg_watch_event);
-    int wd = inotify_poller.addWatch(ipg_watch_dir, event_mask);
-    inotify_poller.addINotifyEventListener(wd,ams);
+        AMSPostProcessor* ams = new AMSPostProcessor(&dispatcher, ams_watch_directory);
+        //iterate through the projects node and add the projects into the AMS Post Processor
+
+
+        //add ams to InotifyPoller
+        uint32_t event_mask = INotifyEvent::parseEventMask(ams_watch_event);
+        int wd = inotify_poller.addWatch(ams_watch_directory, event_mask);
+        inotify_poller.addINotifyEventListener(wd,ams);
+
+    }
+    catch (boost::property_tree::ptree_error& e)
+    {
+        e.what();
+        std::cout << "Warning no AMS config found." << std::endl;
+    }
 
     while(1)
     {
