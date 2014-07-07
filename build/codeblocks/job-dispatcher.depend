@@ -25,7 +25,7 @@
 	<boost/process.hpp>
 	<boost/random.hpp>
 
-1404375027 source:/home/imrsv/workspace/job-dispatcher/src/main.cpp
+1404723029 source:/home/imrsv/workspace/job-dispatcher/src/main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<errno.h>
@@ -33,10 +33,13 @@
 	<sys/types.h>
 	<sys/inotify.h>
 	<sys/epoll.h>
+	<algorithm>
 	<iostream>
 	<sstream>
 	<vector>
+	<list>
 	<map>
+	<cassert>
 	<boost/process.hpp>
 	<boost/program_options.hpp>
 	<boost/property_tree/ptree.hpp>
